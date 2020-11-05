@@ -13,6 +13,11 @@ export default defineComponent({
   name: "Home",
   components: {
     HelloWorld
+  },
+  methods: {
+    classify: function() {
+      
+    }
   }
 });
 </script>
