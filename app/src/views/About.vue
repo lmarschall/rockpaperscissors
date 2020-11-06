@@ -12,6 +12,7 @@ export default {
     name: "About",
     data() {
         return {
+            p5: null,
             classifier: null,
             video: null,
             label: null,
@@ -19,67 +20,60 @@ export default {
         };
     },
     mounted: function() {
-        // this.preload();
-        // this.setup();
-        const P5 = require('p5');
-        console.log(P5);
-        let test = new P5();
-        this.video = test.createCapture(test.VIDEO, {
-              video: {
-                  width: 160,
-                  height: 120,
-                  aspectRatio: 1
-              }
-          });
+        this.p5 = new P5();
+        this.preload();
     },
     methods: {
-      preload: function() {
-          // Create a camera input
-          this.video = P5.createCapture(P5.VIDEO, {
-              video: {
-                  width: 160,
-                  height: 120,
-                  aspectRatio: 1
-              }
-          });
-          //   video = createCapture(VIDEO, video_frame);
-          // Load the DoodleNet Image Classification model
-          this.classifier = ml5.imageClassifier("DoodleNet", this.video);
-      },
+        preload: function() {
+            // Create a camera input
+            this.video = this.p5.createCapture(this.p5.VIDEO, {
+                video: {
+                    width: 160,
+                    height: 120,
+                    aspectRatio: 1
+                }
+            });
+            //   video = createCapture(VIDEO, video_frame);
 
-      setup: function() {
-          // Create a 'label' and 'confidence' div to hold results
-          this.label = P5.createDiv("Label: ...");
-          this.confidence = P5.createDiv("Confidence: ...");
-          // input = document.getElementById("data_transfer");
+            // Load the DoodleNet Image Classification model
+            this.classifier = ml5.imageClassifier(
+                "DoodleNet",
+                this.video,
+                this.setup
+            );
+        },
 
-          this.classifyVideo();
-      },
+        setup: function() {
+            // Create a 'label' and 'confidence' div to hold results
+            this.label = this.p5.createDiv("Label: ...");
+            this.confidence = this.p5.createDiv("Confidence: ...");
 
-      // Get a prediction for the current video frame
-      classifyVideo: function() {
-          this.classifier.classify(this.gotResult);
-      },
+            this.classifyVideo();
+        },
 
-      // A function to run when we get any errors and the results
-      gotResult: function(error, results) {
-          // Display error in the console
-          if (error) {
-              console.error(error);
-          }
-          // The results are in an array ordered by confidence.
-          // console.log(results);
-          // Show the first label and confidence
-          this.label.html(`Label: ${results[0].label}`);
-          this.confidence.html(
-              `Confidence: ${ml5.nf(results[0].confidence, 0, 2)}`
-          ); // Round the confidence to 0.01
-          // console.log(input);
-          // input.value = results[0].label;
-          // document.label = results[0].label;
-          // Call classifyVideo again
-          this.classifyVideo();
-      }
+        // Get a prediction for the current video frame
+        classifyVideo: function() {
+            this.classifier.classify(this.gotResult);
+        },
+
+        // A function to run when we get any errors and the results
+        gotResult: function(error, results) {
+            // Display error in the console
+            if (error) {
+                console.error(error);
+            }
+
+            // The results are in an array ordered by confidence.
+            // Show the first label and confidence
+            this.label.html(`Label: ${results[0].label}`);
+            // Round the confidence to 0.01
+            this.confidence.html(
+                `Confidence: ${this.p5.nf(results[0].confidence, 0, 2)}`
+            );
+
+            // Call classifyVideo again
+            this.classifyVideo();
+        }
     }
 };
 </script>
