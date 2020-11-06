@@ -13,6 +13,7 @@ export default {
     data() {
         return {
             p5: null,
+            poseNet: null,
             classifier: null,
             video: null,
             label: null,
@@ -33,46 +34,35 @@ export default {
                     aspectRatio: 1
                 }
             });
-            //   video = createCapture(VIDEO, video_frame);
 
-            // Load the DoodleNet Image Classification model
-            this.classifier = ml5.imageClassifier(
-                "DoodleNet",
-                this.video,
-                this.setup
-            );
+            this.poseNet = ml5.handpose(this.video, this.modelReady);
+
+            this.poseNet.on("predict", this.gotPose);
         },
 
-        setup: function() {
-            // Create a 'label' and 'confidence' div to hold results
+        modelReady: function() {
             this.label = this.p5.createDiv("Label: ...");
             this.confidence = this.p5.createDiv("Confidence: ...");
-
-            this.classifyVideo();
         },
 
-        // Get a prediction for the current video frame
-        classifyVideo: function() {
-            this.classifier.classify(this.gotResult);
-        },
+        gotPose: function(results) {
+            // if (error) {
+            //     console.error(error);
+            // }
 
-        // A function to run when we get any errors and the results
-        gotResult: function(error, results) {
-            // Display error in the console
-            if (error) {
-                console.error(error);
+            console.log(results);
+
+            if (results.length) {
+                this.label.html(`Label: ${JSON.stringify(results[0])}`);
             }
 
             // The results are in an array ordered by confidence.
             // Show the first label and confidence
-            this.label.html(`Label: ${results[0].label}`);
+            //
             // Round the confidence to 0.01
-            this.confidence.html(
-                `Confidence: ${this.p5.nf(results[0].confidence, 0, 2)}`
-            );
-
-            // Call classifyVideo again
-            this.classifyVideo();
+            // this.confidence.html(
+            //     `Confidence: ${this.p5.nf(results[0].confidence, 0, 2)}`
+            // );
         }
     }
 };
