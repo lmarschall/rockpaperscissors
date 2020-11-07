@@ -12,57 +12,76 @@ export default {
     name: "About",
     data() {
         return {
+            hand: {
+                detected: false,
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0
+            },
             p5: null,
             poseNet: null,
-            classifier: null,
-            video: null,
-            label: null,
-            confidence: null
+            video: null
         };
     },
     mounted: function() {
-        this.p5 = new P5();
-        this.preload();
+        this.setup();
     },
     methods: {
-        preload: function() {
-            // Create a camera input
-            this.video = this.p5.createCapture(this.p5.VIDEO, {
-                video: {
-                    width: 160,
-                    height: 120,
-                    aspectRatio: 1
+        setup: function() {
+            this.p5 = new P5(this.sketch);
+
+            const poseNet = ml5.handpose(this.video, this.modelReady);
+
+            poseNet.on("predict", this.gotPose);
+        },
+
+        sketch: function(p) {
+            const self = this;
+
+            p.setup = function() {
+                p.createCanvas(320, 240);
+                self.video = p.createCapture(p.VIDEO, {
+                    video: {
+                        width: 320,
+                        height: 240,
+                        aspectRatio: 1
+                    }
+                });
+                self.video.hide();
+            };
+
+            p.draw = function() {
+                p.image(self.video, 0, 0);
+                if (self.hand.detected) {
+                    p.rect(self.hand.x, self.hand.y, self.hand.w, self.hand.h);
                 }
-            });
-
-            this.poseNet = ml5.handpose(this.video, this.modelReady);
-
-            this.poseNet.on("predict", this.gotPose);
+            };
         },
 
         modelReady: function() {
-            this.label = this.p5.createDiv("Label: ...");
-            this.confidence = this.p5.createDiv("Confidence: ...");
+            // this.label = this.p5.createDiv("Label: ...");
+            // this.confidence = this.p5.createDiv("Confidence: ...");
         },
 
         gotPose: function(results) {
-            // if (error) {
-            //     console.error(error);
-            // }
-
             console.log(results);
 
-            if (results.length) {
-                this.label.html(`Label: ${JSON.stringify(results[0])}`);
-            }
+            this.hand.detected = false;
 
-            // The results are in an array ordered by confidence.
-            // Show the first label and confidence
-            //
-            // Round the confidence to 0.01
-            // this.confidence.html(
-            //     `Confidence: ${this.p5.nf(results[0].confidence, 0, 2)}`
-            // );
+            if (results.length) {
+                // this.label.html(`Label: ${JSON.stringify(results[0])}`);
+
+                this.hand.detected = true;
+                this.hand.x = results[0].boundingBox.topLeft[0];
+                this.hand.y = results[0].boundingBox.bottomRight[1];
+                this.hand.w =
+                    results[0].boundingBox.bottomRight[0] -
+                    results[0].boundingBox.topLeft[0];
+                this.hand.h =
+                    results[0].boundingBox.topLeft[1] -
+                    results[0].boundingBox.bottomRight[1];
+            }
         }
     }
 };
