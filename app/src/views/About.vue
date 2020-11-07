@@ -3,12 +3,22 @@
         <h1>This is an about page</h1>
         <select name="signs" v-model="sign" id="signs">
             <option disabled value="">SIGN</option>
-            <option v-for="sign in signs" v-bind:key="sign">{{sign}}</option>
+            <option v-for="sign in signs" v-bind:key="sign">{{ sign }}</option>
         </select>
-        <button type="button" v-on:click="modes.collect=true; collectCounter=100;">Collect</button>
+        <button
+            type="button"
+            v-on:click="
+                modes.collect = true;
+                collectCounter = 100;
+            "
+        >
+            Collect
+        </button>
         <button type="button" v-on:click="save">Save</button>
         <button type="button" v-on:click="dataReady">Train</button>
-        <button type="button" v-on:click="modes.predict=!modes.predict">Predict</button>
+        <button type="button" v-on:click="modes.predict = !modes.predict">
+            Predict
+        </button>
     </div>
 </template>
 
@@ -91,7 +101,6 @@ export default {
             };
 
             p.draw = function() {
-
                 // draw an arrow for a vector at a given base position
                 // function drawArrow(base, vec, myColor) {
                 //     p.push();
@@ -106,7 +115,7 @@ export default {
                 //     p.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
                 //     p.pop();
                 // }
-                
+
                 // mirror the frame and present it in dom
                 p.translate(self.video.width, 0);
                 p.scale(-1, 1);
@@ -182,26 +191,32 @@ export default {
                 this.hand.landmarks = [];
 
                 // save x and y coords of hand 21 landmarks
-                for(let i=0;i<results[0].landmarks.length;i++) {
-                    const point = [results[0].landmarks[i][0], results[0].landmarks[i][1]]
+                for (let i = 0; i < results[0].landmarks.length; i++) {
+                    const point = [
+                        results[0].landmarks[i][0],
+                        results[0].landmarks[i][1]
+                    ];
                     this.hand.landmarks.push(point);
                 }
 
                 // generate inputs
                 let inputs = [];
 
-                for(let i=0; i<this.hand.landmarks.length;i++) {
-                    let x = this.hand.landmarks[i][0]/320
-                    let y = this.hand.landmarks[i][1]/240
+                for (let i = 0; i < this.hand.landmarks.length; i++) {
+                    let x = this.hand.landmarks[i][0] / 320;
+                    let y = this.hand.landmarks[i][1] / 240;
                     inputs.push(x);
                     inputs.push(y);
                 }
 
                 // check for collecting
-                if(this.modes.collect && this.collectCounter > 0 && this.sign != "") {
+                if (
+                    this.modes.collect &&
+                    this.collectCounter > 0 &&
+                    this.sign != ""
+                ) {
                     // save data to model
 
-                    
                     let target = [this.sign];
                     this.model.addData(inputs, target);
 
@@ -214,12 +229,12 @@ export default {
                 }
 
                 // check for predicting
-                if(this.modes.predict) {
+                if (this.modes.predict) {
                     // predict sign
                     this.model.classify(inputs, this.gotResults);
                 }
             }
-            if(this.hand.detected) {
+            if (this.hand.detected) {
                 // this.label.html(`Label: ${JSON.stringify(results[0])}`);
                 this.label.html(`Label: Hand detected!`);
             } else {
@@ -233,20 +248,19 @@ export default {
         },
 
         save: function() {
-            console.log("Save Data")
+            console.log("Save Data");
             this.model.saveData();
         },
 
         train: function() {
             console.log("start training");
             this.model.loadData("/hands_signs_data.json", this.dataReady);
-            
         },
 
         dataReady: function() {
             console.log("data ready");
             // this.model.normalizeData();
-            this.model.train({epochs: 20}, this.finished);
+            this.model.train({ epochs: 20 }, this.finished);
         },
 
         finished: function() {
