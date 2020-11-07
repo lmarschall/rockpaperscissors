@@ -54,6 +54,9 @@ export default {
             p.draw = function() {
                 p.image(self.video, 0, 0);
                 if (self.hand.detected) {
+                    const c = p.color("#FFFFFF");
+                    c.setAlpha(0.8);
+                    p.fill(c);
                     p.rect(self.hand.x, self.hand.y, self.hand.w, self.hand.h);
                 }
             };
