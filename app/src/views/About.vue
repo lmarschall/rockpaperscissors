@@ -1,6 +1,14 @@
 <template>
     <div class="about">
         <h1>This is an about page</h1>
+        <select name="signs" v-model="sign" id="signs">
+            <option disabled value="">SIGN</option>
+            <option v-for="sign in signs" v-bind:key="sign">{{sign}}</option>
+        </select>
+        <button type="button" v-on:click="modes.collect=true; collectCounter=100;">Collect</button>
+        <button type="button" v-on:click="save">Save</button>
+        <button type="button" v-on:click="dataReady">Train</button>
+        <button type="button" v-on:click="modes.predict=!modes.predict">Predict</button>
     </div>
 </template>
 
@@ -19,10 +27,20 @@ export default {
                 w: 0,
                 h: 0,
                 landmarks: []
+                // vectors: []
             },
+            sign: "",
+            signs: ["ROCK", "PAPER", "SCISSORS"],
+            modes: {
+                collect: false,
+                train: false,
+                predict: false
+            },
+            collectCounter: 0,
             p5: null,
             model: null,
-            video: null
+            video: null,
+            label: null
         };
     },
     mounted: function() {
@@ -39,11 +57,22 @@ export default {
 
             // setup own model for detecting custom hand pose
             let options = {
-                input: 2,
-                output: 3,
-                task: "classification"
+                inputs: 21,
+                outputs: 3,
+                task: "classification",
+                debug: true
             };
             this.model = ml5.neuralNetwork(options);
+            // const modelInfo = {
+            //     model: "/model.json",
+            //     metadata: "/model_meta.json",
+            //     weights: "/model.weights.bin"
+            // }
+            // this.model.load(modelInfo, this.modelLoaded);
+        },
+
+        modalLoaded: function() {
+            console.log("Model loaded");
         },
 
         sketch: function(p) {
@@ -62,7 +91,28 @@ export default {
             };
 
             p.draw = function() {
-                p.image(self.video, 0, 0);
+
+                // draw an arrow for a vector at a given base position
+                // function drawArrow(base, vec, myColor) {
+                //     p.push();
+                //     p.stroke(myColor);
+                //     p.strokeWeight(3);
+                //     p.fill(myColor);
+                //     p.translate(base.x, base.y);
+                //     p.line(0, 0, vec.x, vec.y);
+                //     p.rotate(vec.heading());
+                //     let arrowSize = 7;
+                //     p.translate(vec.mag() - arrowSize, 0);
+                //     p.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+                //     p.pop();
+                // }
+                
+                // mirror the frame and present it in dom
+                p.translate(self.video.width, 0);
+                p.scale(-1, 1);
+                p.image(self.video, 0, 0, self.video.width, self.video.height);
+
+                // check if hand was detected and draw keypoints
                 if (self.hand.detected) {
                     // draw hand bounding box
                     p.stroke(0);
@@ -73,18 +123,39 @@ export default {
                     p.stroke("blue");
                     p.strokeWeight(5);
 
+                    // console.log(self.hand.landmarks);
+
                     // draw hand landmarks
-                    for (var i = 0; i < self.hand.landmarks.length; i++) {
+                    for (let i = 0; i < self.hand.landmarks.length; i++) {
                         const landmark = self.hand.landmarks[i];
 
-                        p.point(landmark[0], landmark[1], landmark[2]);
+                        p.point(landmark[0], landmark[1]);
                     }
+
+                    // draw hand lines for indexFinder, only, test function
+                    // for (let i = 0; i < self.hand.vectors.length; i++) {
+
+                    //     if(i<(self.hand.vectors.length-1)) {
+                    //         const base = self.hand.vectors[i]
+                    //         const next = self.hand.vectors[i+1];
+                    //         // const v0 = p.createVector(0, 0, 0);
+                    //         const v1 = p.createVector(base[0], base[1]);
+                    //         const v2 = p.createVector(next[0], next[1]);
+                    //         // p.line(base[0], base[1], next[0], next[1])
+                    //         const diff = v2.sub(v1);
+                    //         diff.normalize();
+
+                    //         drawArrow(v1, diff, 'blue');
+                    //         // drawArrow(v0, v2, 'green');
+                    //         // drawArrow(v1, v2, 'purple');
+                    //     }
+                    // }
                 }
             };
         },
 
         modelReady: function() {
-            // this.label = this.p5.createDiv("Label: ...");
+            this.label = this.p5.createDiv("Label: ...");
             // this.confidence = this.p5.createDiv("Confidence: ...");
         },
 
@@ -108,28 +179,79 @@ export default {
                     results[0].boundingBox.topLeft[1] -
                     results[0].boundingBox.bottomRight[1];
 
-                // save hand landmarks
-                this.hand.landmarks = results[0].landmarks;
+                this.hand.landmarks = [];
 
-                // set the current pose to be trained
-                // const rps = "ROCK"
+                // save x and y coords of hand 21 landmarks
+                for(let i=0;i<results[0].landmarks.length;i++) {
+                    const point = [results[0].landmarks[i][0], results[0].landmarks[i][1]]
+                    this.hand.landmarks.push(point);
+                }
 
-                // calculate the 3d vectors of each hand annotation
+                // generate inputs
+                let inputs = [];
 
-                // define the input of the model data
-                let input = {
-                    x: 0,
-                    y: 0
-                };
+                for(let i=0; i<this.hand.landmarks.length;i++) {
+                    let x = this.hand.landmarks[i][0]/320
+                    let y = this.hand.landmarks[i][1]/240
+                    inputs.push(x);
+                    inputs.push(y);
+                }
 
-                // define the output of the model data
-                let output = {
-                    test: ""
-                };
+                // check for collecting
+                if(this.modes.collect && this.collectCounter > 0 && this.sign != "") {
+                    // save data to model
 
-                // add the data to the model
-                this.model.addData(input, output);
+                    
+                    let target = [this.sign];
+                    this.model.addData(inputs, target);
+
+                    console.log("collecting");
+                    console.log(this.collectCounter);
+                    console.log(this.sign);
+
+                    // decrease collectcounter
+                    this.collectCounter--;
+                }
+
+                // check for predicting
+                if(this.modes.predict) {
+                    // predict sign
+                    this.model.classify(inputs, this.gotResults);
+                }
             }
+            if(this.hand.detected) {
+                // this.label.html(`Label: ${JSON.stringify(results[0])}`);
+                this.label.html(`Label: Hand detected!`);
+            } else {
+                this.label.html("No Hand detected!");
+            }
+        },
+
+        gotResults: function(erros, results) {
+            console.log("PREDICTIONS");
+            console.log(results);
+        },
+
+        save: function() {
+            console.log("Save Data")
+            this.model.saveData();
+        },
+
+        train: function() {
+            console.log("start training");
+            this.model.loadData("/hands_signs_data.json", this.dataReady);
+            
+        },
+
+        dataReady: function() {
+            console.log("data ready");
+            // this.model.normalizeData();
+            this.model.train({epochs: 20}, this.finished);
+        },
+
+        finished: function() {
+            console.log("training finished");
+            this.model.save();
         }
     }
 };
