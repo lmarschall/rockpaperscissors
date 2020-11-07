@@ -20,7 +20,7 @@ export default {
                 h: 0
             },
             p5: null,
-            poseNet: null,
+            model: null,
             video: null
         };
     },
@@ -29,11 +29,21 @@ export default {
     },
     methods: {
         setup: function() {
+
+            // setup p5 canvas for drawing hand pose
             this.p5 = new P5(this.sketch);
 
+            // setup ml5 handpose model for detecting hand pose
             const poseNet = ml5.handpose(this.video, this.modelReady);
-
             poseNet.on("predict", this.gotPose);
+
+            // setup own model for detecting custom hand pose
+            let options = {
+                input: 2,
+                output: 3,
+                task: "classification"
+            }
+            this.model = ml5.neuralNetwork(options);
         },
 
         sketch: function(p) {
@@ -54,9 +64,8 @@ export default {
             p.draw = function() {
                 p.image(self.video, 0, 0);
                 if (self.hand.detected) {
-                    const c = p.color("#FFFFFF");
-                    c.setAlpha(0.8);
-                    p.fill(c);
+                    p.stroke(0);
+                    p.noFill();
                     p.rect(self.hand.x, self.hand.y, self.hand.w, self.hand.h);
                 }
             };
@@ -72,9 +81,11 @@ export default {
 
             this.hand.detected = false;
 
+            // check if anything was detected
             if (results.length) {
                 // this.label.html(`Label: ${JSON.stringify(results[0])}`);
 
+                // save the actual hand position to be drawn later
                 this.hand.detected = true;
                 this.hand.x = results[0].boundingBox.topLeft[0];
                 this.hand.y = results[0].boundingBox.bottomRight[1];
@@ -84,6 +95,25 @@ export default {
                 this.hand.h =
                     results[0].boundingBox.topLeft[1] -
                     results[0].boundingBox.bottomRight[1];
+
+                // set the current pose to be trained
+                const rps = "ROCK"
+
+                // calculate the 3d vectors of each hand annotation
+                
+                // define the input of the model data
+                let input = {
+                    x: 0,
+                    y: 0
+                }
+
+                // define the output of the model data
+                let output = {
+                    test: ""
+                }
+
+                // add the data to the model
+                model.addData(input, output)
             }
         }
     }
