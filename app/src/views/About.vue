@@ -17,7 +17,8 @@ export default {
                 x: 0,
                 y: 0,
                 w: 0,
-                h: 0
+                h: 0,
+                landmarks: []
             },
             p5: null,
             model: null,
@@ -29,7 +30,6 @@ export default {
     },
     methods: {
         setup: function() {
-
             // setup p5 canvas for drawing hand pose
             this.p5 = new P5(this.sketch);
 
@@ -42,7 +42,7 @@ export default {
                 input: 2,
                 output: 3,
                 task: "classification"
-            }
+            };
             this.model = ml5.neuralNetwork(options);
         },
 
@@ -64,9 +64,21 @@ export default {
             p.draw = function() {
                 p.image(self.video, 0, 0);
                 if (self.hand.detected) {
+                    // draw hand bounding box
                     p.stroke(0);
                     p.noFill();
+                    p.strokeWeight(3);
                     p.rect(self.hand.x, self.hand.y, self.hand.w, self.hand.h);
+
+                    p.stroke("blue");
+                    p.strokeWeight(5);
+
+                    // draw hand landmarks
+                    for (var i = 0; i < self.hand.landmarks.length; i++) {
+                        const landmark = self.hand.landmarks[i];
+
+                        p.point(landmark[0], landmark[1], landmark[2]);
+                    }
                 }
             };
         },
@@ -77,7 +89,7 @@ export default {
         },
 
         gotPose: function(results) {
-            console.log(results);
+            // console.log(results);
 
             this.hand.detected = false;
 
@@ -96,24 +108,27 @@ export default {
                     results[0].boundingBox.topLeft[1] -
                     results[0].boundingBox.bottomRight[1];
 
+                // save hand landmarks
+                this.hand.landmarks = results[0].landmarks;
+
                 // set the current pose to be trained
-                const rps = "ROCK"
+                // const rps = "ROCK"
 
                 // calculate the 3d vectors of each hand annotation
-                
+
                 // define the input of the model data
                 let input = {
                     x: 0,
                     y: 0
-                }
+                };
 
                 // define the output of the model data
                 let output = {
                     test: ""
-                }
+                };
 
                 // add the data to the model
-                model.addData(input, output)
+                this.model.addData(input, output);
             }
         }
     }
