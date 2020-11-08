@@ -4,26 +4,26 @@
             <button type="button" v-on:click="play">Play</button>
         </div>
         <div v-if="run" class="row justify-content-md-center">
-            <input type="text" v-bind:value="count">
+            <input type="text" v-bind:value="count" />
         </div>
         <div class="row justify-content-md-center">
             <div class="col">
-                <Canvas v-on:inputs="handleInputs"/>
+                <Canvas v-on:inputs="handleInputs" />
             </div>
             <div class="col">
-                <Opponent v-bind:sign="opponent_sign"/>
+                <Opponent v-bind:sign="opponent_sign" />
             </div>
         </div>
         <div class="row justify-content-md-center">
             <div class="col">
-                <input type="text" v-bind:value="player_sign">
+                <input type="text" v-bind:value="player_sign" />
             </div>
             <div class="col">
-                <input type="text" v-bind:value="opponent_sign">
+                <input type="text" v-bind:value="opponent_sign" />
             </div>
         </div>
         <div v-if="!run" class="row justify-content-md-center">
-            <input type="text" v-bind:value="winner">
+            <input type="text" v-bind:value="winner" />
         </div>
     </div>
 </template>
@@ -55,7 +55,6 @@ export default {
         this.setup();
     },
     methods: {
-
         play: function() {
             this.run = true;
             this.opponent_sign = "ENEMY";
@@ -64,7 +63,7 @@ export default {
 
         timer: function() {
             this.count--;
-            if(this.count == 0) {
+            if (this.count == 0) {
                 const signs = ["ROCK", "PAPER", "SCISSORS"];
                 const random = Math.floor(Math.random() * signs.length);
                 this.opponent_sign = signs[random];
@@ -76,30 +75,42 @@ export default {
         },
 
         getWinner: function() {
-            if(this.player_sign=="ROCK" && this.opponent_sign=="PAPER") {
-                return "OP"
+            if (this.player_sign == "ROCK" && this.opponent_sign == "PAPER") {
+                return "OPPONENT";
             }
 
-            if(this.player_sign=="ROCK" && this.opponent_sign=="SCISSORS") {
-                return "PL"
+            if (
+                this.player_sign == "ROCK" &&
+                this.opponent_sign == "SCISSORS"
+            ) {
+                return "PLAYER";
             }
 
-            if(this.player_sign=="PAPER" && this.opponent_sign=="ROCK") {
-                return "PL"
+            if (this.player_sign == "PAPER" && this.opponent_sign == "ROCK") {
+                return "PLAYER";
             }
 
-            if(this.player_sign=="PAPER" && this.opponent_sign=="SCISSORS") {
-                return "OP"
+            if (
+                this.player_sign == "PAPER" &&
+                this.opponent_sign == "SCISSORS"
+            ) {
+                return "OPPONENT";
             }
 
-            if(this.player_sign=="SCISSORS" && this.opponent_sign=="ROCK") {
-                return "OP"
+            if (
+                this.player_sign == "SCISSORS" &&
+                this.opponent_sign == "ROCK"
+            ) {
+                return "OPPONENT";
             }
 
-            if(this.player_sign=="SCISSORS" && this.opponent_sign=="PAPER") {
-                return "PL"
+            if (
+                this.player_sign == "SCISSORS" &&
+                this.opponent_sign == "PAPER"
+            ) {
+                return "PLAYER";
             }
-            return "NONE"
+            return "NONE";
         },
 
         setup: function() {
@@ -127,7 +138,7 @@ export default {
         },
 
         handleInputs: function(inputs) {
-            if(this.ready) {
+            if (this.ready) {
                 // predict sign
                 this.model.classify(inputs, this.gotResults);
             }
