@@ -50,7 +50,8 @@ export default {
             p5: null,
             model: null,
             video: null,
-            label: null
+            label: null,
+            result: null
         };
     },
     mounted: function() {
@@ -77,12 +78,13 @@ export default {
                 model: "/model.json",
                 metadata: "/model_meta.json",
                 weights: "/model.weights.bin"
-            }
+            };
             this.model.load(modelInfo, this.modelLoaded);
         },
 
         modelLoaded: function() {
             console.log("Model loaded");
+            this.result = this.p5.createDiv("Result: ...");
         },
 
         sketch: function(p) {
@@ -242,9 +244,10 @@ export default {
             }
         },
 
-        gotResults: function(erros, results) {
-            console.log("PREDICTIONS");
-            console.log(results[0].label);
+        gotResults: function(errors, results) {
+            // console.log("PREDICTIONS");
+            // console.log(results[0].label);
+            this.result.html(`Label: ${results[0].label}`);
         },
 
         save: function() {
