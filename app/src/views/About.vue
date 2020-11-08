@@ -73,15 +73,15 @@ export default {
                 debug: true
             };
             this.model = ml5.neuralNetwork(options);
-            // const modelInfo = {
-            //     model: "/model.json",
-            //     metadata: "/model_meta.json",
-            //     weights: "/model.weights.bin"
-            // }
-            // this.model.load(modelInfo, this.modelLoaded);
+            const modelInfo = {
+                model: "/model.json",
+                metadata: "/model_meta.json",
+                weights: "/model.weights.bin"
+            }
+            this.model.load(modelInfo, this.modelLoaded);
         },
 
-        modalLoaded: function() {
+        modelLoaded: function() {
             console.log("Model loaded");
         },
 
@@ -244,7 +244,7 @@ export default {
 
         gotResults: function(erros, results) {
             console.log("PREDICTIONS");
-            console.log(results);
+            console.log(results[0].label);
         },
 
         save: function() {
