@@ -62,10 +62,6 @@ export default {
             // setup p5 canvas for drawing hand pose
             this.p5 = new P5(this.sketch);
 
-            // setup ml5 handpose model for detecting hand pose
-            const poseNet = ml5.handpose(this.video, this.modelReady);
-            poseNet.on("predict", this.gotPose);
-
             // setup own model for detecting custom hand pose
             let options = {
                 inputs: 21,
@@ -74,12 +70,18 @@ export default {
                 debug: true
             };
             this.model = ml5.neuralNetwork(options);
-            const modelInfo = {
-                model: "/model.json",
-                metadata: "/model_meta.json",
-                weights: "/model.weights.bin"
-            };
-            this.model.load(modelInfo, this.modelLoaded);
+            // const modelInfo = {
+            //     model: "/model.json",
+            //     metadata: "/model_meta.json",
+            //     weights: "/model.weights.bin"
+            // };
+            // this.model.load(modelInfo, this.modelLoaded);
+        },
+
+        loadModel: function() {
+            // setup ml5 handpose model for detecting hand pose
+            const poseNet = ml5.handpose(this.video, this.modelReady);
+            poseNet.on("predict", this.gotPose);
         },
 
         modelLoaded: function() {
@@ -100,6 +102,7 @@ export default {
                     }
                 });
                 self.video.hide();
+                self.loadModel();
             };
 
             p.draw = function() {

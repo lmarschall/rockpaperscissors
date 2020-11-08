@@ -1,10 +1,10 @@
 <template>
     <div class="container">
         <div class="row justify-content-md-center">
-            <button type="button" v-on:click="play">Play</button>
+            <button type="button" class="btn btn-dark" v-on:click="play">Play</button>
         </div>
         <div v-if="run" class="row justify-content-md-center">
-            <input type="text" v-bind:value="count" />
+            <input type="text" class="form-control" v-bind:value="count" />
         </div>
         <div class="row justify-content-md-center">
             <div class="col">
@@ -16,17 +16,32 @@
         </div>
         <div class="row justify-content-md-center">
             <div class="col">
-                <input type="text" v-bind:value="player_sign" />
+                <input type="text" class="form-control" v-bind:value="player_sign" />
             </div>
             <div class="col">
-                <input type="text" v-bind:value="opponent_sign" />
+                <input type="text" class="form-control" v-bind:value="opponent_sign" />
             </div>
         </div>
         <div v-if="!run" class="row justify-content-md-center">
-            <input type="text" v-bind:value="winner" />
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="winner-span">WINNER</span>
+                </div>
+                <input type="text" class="form-control" aria-describedby="winner-span" v-bind:value="winner" />
+            </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.row.justify-content-md-center {
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+}
+input.form-control {
+    text-align-last: center;
+}
+</style>
 
 <script>
 import Canvas from "@/components/Canvas.vue";
@@ -146,7 +161,7 @@ export default {
 
         gotResults: function(errors, results) {
             this.player_sign = results[0].label;
-            console.log(this.player_sign);
+            // console.log(this.player_sign);
         }
     }
 };
